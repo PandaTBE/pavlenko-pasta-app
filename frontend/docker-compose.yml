@@ -1,0 +1,16 @@
+services:
+    front:
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        ports:
+            - '${NEXT_APP_EXTERNAL_PORT}:${NEXT_APP_INNER_PORT}'
+        command: npm run start
+        env_file:
+            - .env
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        external: true

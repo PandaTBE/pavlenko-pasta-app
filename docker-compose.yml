@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  db:
+    restart: unless-stopped
+    image: postgres:17
+    ports:
+      - 5432:${DB_PORT}
+    volumes:
+      - ./persistent_data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    env_file:
+      - .env
+
+  backend:
+    restart: unless-stopped
+    env_file:
+      - .env
+    build:
+      context: ./backend
+    depends_on:
+      - db
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - 8000:8000
+    volumes:
+      - ./backend/src/:/src
+      - ${PERSISTENT_DATA_STATIC}:${STATIC_ROOT}
+      - ${PERSISTENT_DATA_MEDIA}:${MEDIA_ROOT}     
+
+  frontend:
+    restart: unless-stopped
+    env_file: 
+      - .env
+    build:
+      context: ./frontend
+    ports:
+      - '${NEXT_APP_EXTERNAL_PORT}:${NEXT_APP_INNER_PORT}'
+    command: npm run dev
